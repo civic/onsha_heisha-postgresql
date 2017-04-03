@@ -1,0 +1,4 @@
+#!/bin/sh
+
+./configure --prefix=/home/ubuntu/pgsql --with-python=yes PYTHON=/usr/bin/python3
+

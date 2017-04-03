@@ -1,0 +1,6 @@
+.vagrant
+*.log
+.vscode
+venv
+
+/java/target/

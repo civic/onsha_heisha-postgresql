@@ -1,0 +1,15 @@
+SELECT * FROM t1, t2;
+
+SELECT * FROM t1 CROSS JOIN t2;
+
+SELECT * FROM t1 JOIN t2 ON t1.num = t2.num;
+
+SELECT * FROM t1 JOIN t2 USING(num);
+
+SELECT * FROM t1 NATURAL JOIN t2;
+
+SELECT * FROM t1 LEFT JOIN t2 ON t1.num = t2.num;
+
+SELECT * FROM t1 RIGHT JOIN t2 ON t1.num = t2.num;
+
+SELECT * FROM t1 FULL JOIN t2 ON t1.num = t2.num;
