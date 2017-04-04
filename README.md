@@ -16,6 +16,10 @@ PostgreSQLの公式文書を読んで試していく
 環境構築
 ----
 
+```
+$ vagrant up
+```
+
 OS上でのユーザー管理などもあるので、プレーンなUbuntu 16.04から準備して使用する。
 
 - Vagrant Ubuntu16.04
