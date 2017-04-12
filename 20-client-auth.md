@@ -176,23 +176,30 @@ SSLのクライアント証明書を利用して認証する。
 - サーバー側の秘密鍵、証明書は作成済み([18.9](18-runtime.md))
 - postgresql.confを修正
     - server.crtをroot.crtとしてコピー
+        - `cp pgdata/server.crt pgdata/root.crt`
         - postgresqlサーバのもつ証明書をそのままSSLサーバ認証局として使用
     - ssl_ca_fileにroot.crtを指定
 - クライアントで秘密鍵と証明書を作成
     - 便宜上virtualboxのゲストマシン上でサーバ/クライアントの両方の立場でやる
     - virtualboxのホストマシンにpsqlがあればそちらでやるとサーバ/クライアントの違いが分かりやすい
         - listen_addressの修正をわすれずに
-    - `openssl req -new -text -keyout ubuntu.key -out ubuntu.req`
-        - 秘密鍵の生成(ubuntu.key)、証明書署名要求(ubuntu.req)を生成、自己署名を行う。
-        - common nameをubuntuで生成する
+    - `openssl genrsa -out ubuntu.key`
+        - クライアントの秘密鍵生成(ubuntu.key)
+    - `openssl req -new -text -key ubuntu.key -out ubuntu.req`
+        - 証明書署名要求(ubuntu.req)を生成。
+        - common nameをubuntuで生成する(postgresql DB上のユーザー名)
         - chmod 600 ubuntu.key
 - ユーザubuntuの証明書署名要求(ubuntu.req)をサーバに送付
+    - 証明書に署名してもらうため
+    - ここでは同じマシン上でやっているので特に作業なし
 - 証明書署名要求にルート証明書で署名
     - `openssl x509 -req -in ubuntu.req -CA pgdata/root.crt -CAkey pgdata/server.key -out ubuntu.crt -CAcreateserial`
+
 - 署名されたubuntuのクライアント証明書(ubuntu.crt)と、サーバ側の証明書(root.crt)をクライアントに配布
+    - `cp pgdata/root.crt ./`
 - ユーザーubuntuでdb_certに接続できることを確認
     - `psql "dbname=db_cert user=ubuntu sslcert=./ubuntu.crt sslkey=./ubuntu.key host=localhost"`
     - サーバ側の証明書は検証していない(暗号化のみ検証)
 - sslmode=verify-caにすることで、MITM防止
-    - `psql "dbname=db_cert user=ubuntu sslmode=verify-ca sslcert=./ubuntu.crt sslkey=./ubuntu.key host=localhost sslrootcert=./pgdata/root.crt"`
+    - `psql "dbname=db_cert user=ubuntu sslmode=verify-ca sslcert=./ubuntu.crt sslkey=./ubuntu.key host=localhost sslrootcert=./root.crt"`
    

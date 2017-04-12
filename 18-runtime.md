@@ -112,19 +112,22 @@ TCP接続時にSSLで通信内容を暗号化する話。
     - ssl_key_file(server.key)
 - 自己署名証明書の作成
     - やること
-        - 鍵の作成
+        - 秘密鍵の作成
         - 証明書の署名要求の作成
         - 証明書署名要求に署名
-    - openssl req -new -text -out server.req
-        - 秘密鍵の生成(privkey.pem)、証明書署名要求(server.req)を生成、自己署名を行う。
-        - 証明書の署名申請書を作って自分を証明するハンコを押すイメージ
-    - openssl rsa -in privkey.pem -out server.key
-        - サーバ側の秘密鍵のパスフレーズを削除(起動の際にパスフレーズ不要にする)
-        - privkey -> server.key
-    - openssl req -x509 -in server.req -text -key server.key -out server.crt
+    - openssl genrsa -out pgdata/server.key
+        - 秘密鍵の生成
+    - openssl req -new -text -key pgdata/server.key -out server.req
+        - 証明書署名要求(server.req)を生成
+        - 証明書の署名申請書を作るイメージ
+            - 自分の証明書情報
+            - 公開鍵（秘密鍵から生成）
+            - 秘密鍵のハッシュ   
+        - postgresqlの文書では`openssl req`で秘密鍵を指定せずにその場で作成している(privkey.pem)
+    - openssl req -x509 -in server.req -text -key pgdata/server.key -out pgdata/server.crt
         - 証明書署名要求に自分で署名する
         - 申請書に自分で承認のハンコを押すイメージ
-    - chmod 600 server.crt
+    - chmod 600 pgdata/server.key
 
 - psql -h でtcpで接続してSSL接続されていることを確認
 
