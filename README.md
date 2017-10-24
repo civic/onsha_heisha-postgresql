@@ -32,4 +32,18 @@ vagrantの5432ポートにフォワードしているので、ホスト側から
 (サーバー側の接続許可設定が必要)
 
 
+SQL関係学習用の環境構築
+-------------------------
+クリーンな環境から `install.sh` でpostgresqlのビルドやインストールまで済ませられる。
 
+サーバの起動停止は、pg_start_server/pg_stop_serverでできます。
+
+すでに16章のinstallを完了させpostgresqlをビルド・インストール済みであれば、ubuntuユーザー用のDBとpostgresのubuntuユーザを作成してください
+
+```
+$ /vagrant/pg_start_server
+$ /usr/local/pgsql/bin/createdb -U postgres ubuntu
+$ /usr/local/pgsql/bin/psql -U postgres -c "CREATE USER ubuntu SUPERUSER"
+```
+
+よくわからなくなった場合は、vagrantから作りなおして`install.sh`を実行してください。。。
