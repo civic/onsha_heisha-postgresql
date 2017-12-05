@@ -115,6 +115,28 @@ job内の代表社員は **job内の任意の1社員とし任意の1社員の選
 ### 7.8 WITH 問い合わせ（共通テーブル式）
 
 - 複雑な副問合せを単純な部品に分解
+
+社員一覧にjob別のMAX(sal)を結合したもの (window関数でもできる)
+```
+SELECT empno, ename, js.job, js.max_sal
+FROM EMP
+JOIN (
+    SELECT job, MAX(sal) max_sal FROM emp 
+    GROUP BY job
+) js USING(job)
+
+```
+WITH問い合わせで、副問合せ分を先に分割する
+```
+WITH js AS(
+    SELECT job, MAX(sal) max_sal FROM emp
+    GROUP BY job
+)
+SELECT empno, ename, js.job, js.max_sal
+FROM EMP JOIN js USING(job)
+;
+```
+
 - WITH RECURSIVEを使えば、通常のSQLでは不可能な機能を実現できる
 - 例：emp表の上司から部下のツリーを出力
 
@@ -148,5 +170,4 @@ SELECT * FROM emp_tree ORDER BY path;
 (14 rows)
 
 ```
-
 
