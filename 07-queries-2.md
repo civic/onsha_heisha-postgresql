@@ -50,7 +50,7 @@ job内の代表社員は **job内の任意の1社員とし任意の1社員の選
 
 - `\i /vagrant/sql/emp-dept.sql`を使ってemp表を作成しておく
 - DISTINCT ONを使用して、jobの一致を重複とみなす
-- 応用:同じ結果をDISTINC ONを使わずに書いてみる
+- 応用:同じ結果をDISTINCT ONを使わずに書いてみる
     - DISTINCT ONは使わないがDISTINCTは可のパターン
         - ヒント WINDOW関数でFIRST_VALUEを使う（jobで分けたグループの最初の社員）
     - DISTINCTもWINDOW関数も使わないパターン
@@ -76,8 +76,39 @@ job内の代表社員は **job内の任意の1社員とし任意の1社員の選
     - 差集合
 - UNION互換であること
     - 同じ数の列
-    - 対応する列はご感染のあるデータ型
+    - 対応する列は互換性のあるデータ型
     - 列名が一致しなくてよい
+
+```
+# SELECT * FROM emp WHERE job = 'SALESMAN'
+
+ empno | ename  |   job    | mgr  |  hiredate  |   sal   |  comm   | deptno
+-------+--------+----------+------+------------+---------+---------+--------
+  7499 | ALLEN  | SALESMAN | 7698 | 1981-02-20 | 1600.00 |  300.00 |     30
+  7521 | WARD   | SALESMAN | 7698 | 1981-02-22 | 1250.00 |  500.00 |     30
+  7654 | MARTIN | SALESMAN | 7698 | 1981-09-28 | 1250.00 | 1400.00 |     30
+  7844 | TURNER | SALESMAN | 7698 | 1981-09-08 | 1500.00 |    0.00 |     30
+(4 rows)
+```
+
+```
+# SELECT * FROM emp WHERE sal < 1500;
+ empno | ename  |   job    | mgr  |  hiredate  |   sal   |  comm   | deptno
+-------+--------+----------+------+------------+---------+---------+--------
+  7369 | SMITH  | CLERK    | 7902 | 1980-12-17 |  800.00 |         |     20
+  7521 | WARD   | SALESMAN | 7698 | 1981-02-22 | 1250.00 |  500.00 |     30
+  7654 | MARTIN | SALESMAN | 7698 | 1981-09-28 | 1250.00 | 1400.00 |     30
+  7876 | ADAMS  | CLERK    | 7788 | 1987-07-13 | 1100.00 |         |     20
+  7900 | JAMES  | CLERK    | 7698 | 1981-12-03 |  950.00 |         |     30
+  7934 | MILLER | CLERK    | 7782 | 1982-01-23 | 1300.00 |         |     10
+(6 rows)
+```
+
+```
+SELECT * FROM emp WHERE job = 'SALESMAN'
+UNION
+SELECT * FROM emp WHERE sal < 1500;
+```
 
 ![union](img/union.png)
 
@@ -89,6 +120,7 @@ job内の代表社員は **job内の任意の1社員とし任意の1社員の選
     - スキャンの実装やディスク上の順序に依存するがそれを当てにしない
     - 保証するには必ずORDER BY
 - ASC, DESC
+    - 昇順降順の指定は列ごとに
 - NULLS FIRST, NULLS LAST
 
 ### 7.6 LIMITとOFFSET
@@ -110,7 +142,9 @@ job内の代表社員は **job内の任意の1社員とし任意の1社員の選
 
 - 定数テーブルを作成
 - ディスク上に保存することなく問い合わせで使用できるテーブル
-
+```
+SELECT * FROM (VALUES(0, 'SUN'), (1, 'MON'), (2, 'TUE')) wd(n, label);
+```
 
 ### 7.8 WITH 問い合わせ（共通テーブル式）
 
@@ -138,14 +172,24 @@ FROM EMP JOIN js USING(job)
 ```
 
 - WITH RECURSIVEを使えば、通常のSQLでは不可能な機能を実現できる
+    - よく構文がわからないが、雛形としては[非再帰的表現]、[UNION]、[再帰的表現]の3つで構成されていると考える。
+    - [非再帰的表現]が1回目、以降[再帰的表現]を繰り返すみたいな読み方
 - 例：emp表の上司から部下のツリーを出力
 
 ```
 WITH RECURSIVE emp_tree(empno, ename, mgr, path) AS (
     SELECT empno, ename, mgr, '/' || ename FROM emp WHERE empno = 7839
-    UNION ALL
+    UNION 
     SELECT e.empno, e.ename, e.mgr, t.path || '/' || e.ename  FROM emp_tree  t, emp e
     WHERE e.mgr = t.empno
+)
+SELECT * FROM emp_tree ORDER BY path;
+```
+```
+WITH RECURSIVE 共通テーブル式名 AS (
+    /* 非再帰的表現 */
+    UNION
+    /* 再帰的表現 */
 )
 SELECT * FROM emp_tree ORDER BY path;
 ```
